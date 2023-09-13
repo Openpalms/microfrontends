@@ -1,0 +1,30 @@
+stages:
+  - build
+  - deploy
+
+variables:
+    BUCKET_NAME: ${BUCKET_NAME}
+    YC_S3: "aws s3 --endpoint-url=https://storage.yandexcloud.net"
+    
+build artifact:
+  stage: build
+  image: node:14-alpine
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - main
+
+deploy to s3:
+  stage: deploy
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+
+  script:
+    - aws --version
+    - $YC_S3 rm s3://$BUCKET_NAME --recursive
+    - $YC_S3 cp dist s3://$BUCKET_NAME --recursive
